@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TETRIS - 像素俄罗斯方块</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-container">
+    <div class="title">TETRIS</div>
+    <div id="game-main">
+      <div class="board-wrapper">
+        <canvas id="game-canvas" width="300" height="600"></canvas>
+      </div>
+      <div id="side-panel">
+        <div class="panel-section">
+          <div class="panel-label">分数</div>
+          <div class="panel-value" id="score">0</div>
+        </div>
+        <div class="panel-section">
+          <div class="panel-label">等级</div>
+          <div class="panel-value" id="level">1</div>
+        </div>
+        <div class="panel-section">
+          <div class="panel-label">消行</div>
+          <div class="panel-value" id="lines">0</div>
+        </div>
+        <div class="panel-section">
+          <div class="panel-label">下一块</div>
+          <canvas id="next-canvas" width="120" height="120"></canvas>
+        </div>
+        <div class="panel-section">
+          <div class="panel-label">操作</div>
+          <div class="controls-hint"><span class="key">←</span><span class="key">→</span> 移动</div>
+          <div class="controls-hint"><span class="key">↑</span> 旋转</div>
+          <div class="controls-hint"><span class="key">↓</span> 软降</div>
+          <div class="controls-hint"><span class="key">空格</span> 硬降</div>
+          <div class="controls-hint"><span class="key">P</span> 暂停</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="js/tetris.js"></script>
+</body>
+</html>

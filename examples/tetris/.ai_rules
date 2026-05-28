@@ -1,0 +1,19 @@
+{
+  "remote_agent": {
+    "description": "SOLO Architect Mode — 高阶架构师",
+    "read_access": ["/src/*", "/docs/*", ".ai_rules"],
+    "write_access": ["/docs/plans/*", "/docs/architecture/*"],
+    "permission_denied": [
+      "Direct_Write_To_Src_Before_Human_Review",
+      "Direct_Terminal_Execution_Without_Plan"
+    ],
+    "protocol": "output_pixel_level_atomic_implementation_doc_only"
+  },
+  "local_agent": {
+    "description": "SOLO Executor Mode — 沙箱代码执行器",
+    "read_access": ["/docs/plans/*", "/docs/status/*", "/src/*", ".ai_rules"],
+    "write_access": ["/src/*", "/docs/logs/*"],
+    "sandbox_restriction": "Require_Human_Physical_Confirmation_Before_Any_Bash_Execution",
+    "protocol": "strictly_follow_STATUS.md_do_not_deviate"
+  }
+}

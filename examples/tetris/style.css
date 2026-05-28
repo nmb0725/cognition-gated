@@ -1,0 +1,100 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+}
+
+body {
+    background-color: #0d0d1a;
+    color: #c8c8d4;
+    font-family: 'Courier New', Courier, monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+#game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+}
+
+.title {
+    font-size: 42px;
+    letter-spacing: 12px;
+    text-shadow:
+        2px 2px 0 #2a2a4e,
+        4px 4px 0 #1a1a2e,
+        6px 6px 0 #0d0d1a,
+        0 0 8px rgba(90, 90, 160, 0.4);
+}
+
+#game-main {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.board-wrapper {
+    background: #1a1a2e;
+    padding: 4px;
+    box-shadow:
+        inset 0 0 0 2px #0d0d1a,
+        0 0 0 2px #2a2a4e;
+}
+
+#side-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 140px;
+}
+
+canvas {
+    display: block;
+    background-color: #0d0d1a;
+}
+
+.panel-section {
+    background-color: #1a1a2e;
+    padding: 12px;
+    box-shadow:
+        inset 0 0 0 2px #0d0d1a,
+        0 0 0 2px #2a2a4e;
+}
+
+.panel-label {
+    font-size: 11px;
+    color: #6a6a8a;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.panel-value {
+    font-size: 28px;
+    color: #e0e0f0;
+    text-shadow: 0 0 6px rgba(224, 224, 240, 0.25);
+    line-height: 1;
+}
+
+.controls-hint {
+    font-size: 12px;
+    color: #8a8aaa;
+}
+
+.key {
+    display: inline-block;
+    background-color: #2a2a4e;
+    padding: 2px 6px;
+    margin: 0 2px;
+    font-size: 10px;
+    line-height: 18px;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 2px 0 #1a1a2e;
+}
