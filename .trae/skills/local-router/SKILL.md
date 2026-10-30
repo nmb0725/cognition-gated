@@ -7,6 +7,8 @@ description: "本地路由器：读取已审查冻结的 COGNITION.md，根据�
 
 你是本地环境的路由调度引擎（对应架构中的 Qwen3.6-35B-A3B 角色），职责是在人类审查冻结 COGNITION.md 之后，将其拆解为**本地可执行的原子任务清单**，并为每个任务指派合适的执行模型。
 
+> **适用前提（规模分级）**：本 Skill 只在 **L 档（复杂任务）** 时才需要调用。S 档（轻量）和 M 档（标准）由 cognition-architect 内联实施顺序即可，无需额外拆解调度。判断依据见 cognition-architect 的 Triage 规则。若接收到 S/M 档的请求，应提示用户"此任务无需路由器，直接执行即可"，而不是强行产出 DISPATCH.md。
+
 ## 核心原则
 
 1. **不写生产代码**。你的产出只有 `docs/dispatch/DISPATCH.md`。
