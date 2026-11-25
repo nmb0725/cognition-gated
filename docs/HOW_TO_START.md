@@ -1,144 +1,101 @@
-# 新项目启动包 — 个人 AI 开发工作流
+# 使用说明
 
-## 你需要拷贝到新项目的文件
+## 1. 安装到你的项目
 
-从本项目复制以下文件/目录到新项目的根目录：
-
-```
-<新项目根目录>/
-├── .ai_rules                          # 权限守则
-└── .trae/
-    └── skills/
-        ├── cognition-architect/
-        │   └── SKILL.md               # 云端架构师
-        └── local-router/
-            └── SKILL.md               # 本地路由器
+```bash
+python scripts/install_skills.py <你的项目目录> --tool agents   # 通用位置 .agents/skills/
+python scripts/install_skills.py <你的项目目录> --tool trae     # Trae：.trae/skills/
+python scripts/install_skills.py <你的项目目录> --tool claude   # Claude Code：.claude/skills/
 ```
 
-**共 3 个文件**。拷过去即可，无需修改。
+脚本会复制两个 Skill、`AGENTS.md`、`scripts/check_redlines.py` 和 `scripts/check_contract.py`。已存在的文件不会被覆盖（加 `--force` 才覆盖）。
 
----
+装好后改目标项目 `AGENTS.md` 里的两节：
 
-## 新项目的目录结构标准
+- **§7 项目命令**：安装、构建、测试命令
+- **§8 能力档映射**：推理档和编码档分别用哪个模型。只有一个模型就两档都填它
 
-项目运行过程中会自动创建的目录：
+最后按 [ENFORCEMENT.md](./ENFORCEMENT.md) 把命令策略写进工具的权限设置。
+
+## 2. 目录约定
 
 ```
-<新项目根目录>/
-├── docs/
-│   ├── plans/
-│   │   └── COGNITION.md      ← @cognition-architect 产出
-│   └── dispatch/
-│       └── DISPATCH.md       ← @local-router 产出
-└── src/                       ← 你的生产代码
+<项目>/
+├── AGENTS.md
+├── docs/plans/
+│   ├── COGNITION.md   ← @cognition-architect 产出（M/L 档）
+│   └── DISPATCH.md    ← @dispatcher 产出（仅 L 档）
+└── scripts/
+    ├── check_contract.py
+    └── check_redlines.py
 ```
 
----
+## 3. 三个档位怎么走
 
-## 完整工作流程
+### S 档：小改动
+直接说需求。agent 写明"分级：S"，简短说明后直接改，交付改动清单。
 
-> **开工前先分级**：架构师会先判定需求档位——**S 轻量**（单文件/样式，直接执行）、**M 标准**（2-5 文件，一份 COGNITION.md + 审查后内联执行）、**L 复杂**（多文件多模块，走下面的完整流程）。下面的 7 步主要针对 **L 档**。
+### M 档：2–5 个文件
+1. `@cognition-architect 我想做 …` → 产出精简版 `COGNITION.md`
+2. **你审查**：意图、接口契约、验收标准对不对。满意就让它把状态改为"已冻结"
+3. "按 COGNITION.md 实施" → agent 实施并跑验收
+4. **你审查**：验收结果 + diff
 
-### 第 1 步：提出需求
+### L 档：多模块、并行
+1. 同 M 档第 1–2 步，产出完整版 `COGNITION.md` 并冻结
+2. `@dispatcher` → 产出 `DISPATCH.md`：任务表、文件独占、批次、验收
+3. **你审批**任务表（30 秒能扫完）
+4. 调度器把任务派给子 agent 并行执行，逐个跑验收并集成
+5. **你审查**：汇总的验收结果 + diff
 
-告诉 SOLO 你想要什么。例如：
+## 4. 审查时看什么
 
-> @cognition-architect 我想做一个离线可用的 Markdown 编辑器，支持实时预览、语法高亮、导出 HTML。
+**审 COGNITION.md（最重要的一道关）**
+- 意图和非目标写清楚了吗？
+- 接口契约表里，是否所有被多个文件共用的名字都列出来了？
+- 每条验收标准都能用命令或可观察的结果判定吗？
+- 风险档（高/中/低）定得合理吗？
 
-### 第 2 步：审查 COGNITION.md
+**审 DISPATCH.md（仅 L 档）**
+- 并行任务之间有没有共用文件？
+- 依赖顺序对吗？
 
-`@cognition-architect` 会产出 `docs/plans/COGNITION.md`，包含：
-- 技术选型
-- 模块拆分与文件清单
-- 核心数据结构与接口定义
-- 交互流程
-- 实施顺序
-- 风险与注意事项
+**审结果**
+- 验收全部通过了吗？`check_contract.py` 和 `check_redlines.py` 都干净吗？
+- diff 里有没有规格之外的改动？
 
-**你做的事**：读一遍，确认方案合理。有问题让 Skill 改，直到满意。
+## 5. 出错时
 
-### 第 3 步：冻结，调用路由器
+不需要你手动搬运报错。错误按下面的路径逐级升级：
 
-确认 COGNITION.md 没问题后，告诉路由器：
+| 层级 | 情况 | 处理 |
+| :---: | :--- | :--- |
+| ① | 单文件错误 | 执行者在重试预算内（默认 3 轮）自己修 |
+| ② | 跨文件、契约不一致 | 调度器修 |
+| ③ | 预算用完仍失败 | 用最小上下文（堆栈 + diff + 规格对应章节）升级到推理档模型 |
+| ④ | 触及红线、规格有错 | 停下来问你 |
 
-> @local-router COGNITION.md 已审查冻结，请按计划拆解调度。
+## 6. 调试阶段
 
-路由器会产出 `docs/dispatch/DISPATCH.md`，包含：
-- 环境快照（本地目录、可用模型）
-- 跨文件接口约定（命名统一表）
-- 任务清单（每个任务指派了执行模型和错误上报路径）
-- 风险备注
-
-### 第 4 步：审查 DISPATCH.md
-
-**你做的事**：扫一眼调度表，确认：
-- 任务拆解是否合理
-- 执行模型指派是否正确
-- 接口约定有没有遗漏
-- 有误就反馈修改，无误就批准执行
-
-### 第 5 步：执行
-
-批准后，由执行器按 DISPATCH.md 逐个完成任务。
-
-### 第 6 步：错误处理
-
-执行中出错时，按预定的错误上报路径逐级处理：
-
-| 层级 | 谁处理 | 典型错误 | 怎么做 |
-| :---: | :--- | :--- | :--- |
-| ① | 执行器自愈 | 语法错误 | 直接重试 1 次 |
-| ② | 路由器修复 | 接口命名冲突 | 路由器跨文件协调修复 |
-| ③ | 云端查询 | 逻辑偏差/推理不足 | 通过增量 Debug 协议提纯上报 |
-| ④ | 你终审 | 架构/安全问题 | 看完方案后批准或否决 |
-
----
-
-## 不同阶段如何调用 Skill
-
-### 初始化新项目时
-
-```markdown
-@cognition-architect 我想做一个 ...
+```
+@dispatcher debug     # 进入快速通道：绿区直接批量修，碰红线自动停
+…修 bug…
+@dispatcher sync      # 把调试期间的接口变化写回 COGNITION.md，等你重新冻结
 ```
 
-### 审查 COGNITION.md 后
+## 7. 常见问题
 
-```markdown
-@local-router COGNITION.md 已冻结，位于 docs/plans/COGNITION.md
-```
+**Q：每一步都要审，会不会很慢？**
+真正要动脑子的只有冻结 COGNITION.md 这一次。S 档没有关口；执行期间 agent 自己循环修错，你只在最后看结果。
 
-### 需要修正时
+**Q：只有一个模型能用吗？**
+能。§8 的两档都填同一个模型即可。隔离靠的是子 agent 各自独立的上下文，不是靠不同的模型。
 
-```markdown
-@local-router DISPATCH.md 第 T-003 的执行模型指派不对，
-这个任务需要跨文件理解，应该由路由器自留而不是交给 Coder。
-```
+**Q：工具不支持子 agent 怎么办？**
+用新会话执行每个任务（只给任务卡和契约表），或者用 `git worktree` 隔离，效果相近。
 
-### 需要阶段变更时
+**Q：规格冻结后需求变了怎么办？**
+`@cognition-architect 需求有变：…`。它会更新相关章节，追加修订记录，把状态改回草稿，等你重新冻结。
 
-```markdown
-@cognition-architect 需求有变，在已有 COGNITION.md 基础上增加以下功能：...
-```
-
----
-
-## 进阶用法
-
-### 跳过路由器，直接由云端执行
-
-适合简单、不涉及本地环境的任务，直接让云端按 COGNITION.md 实施：
-
-> COGNITION.md 已冻结。请直接按规划实施，严格遵循文档中的接口定义和文件清单。
-
-### 只产规划不执行
-
-适合需要先看方案再决定做不做的探索性需求：
-
-> @cognition-architect 只出 COGNITION.md，不需要执行。
-
-### 复用现有 COGNITION.md
-
-需求相似时，可以基于已有的 COGNITION.md 修改，而不是从零开始：
-
-> @cognition-architect 参考现有的 docs/plans/COGNITION.md，为 [新项目] 调整方案。
+**Q：和直接用 Kiro 或 spec-kit 有什么区别？**
+思路相同。如果你已经在用它们，可以只借用本项目的接口契约、文件独占、红线检查这几样，配合它们的规格流程。

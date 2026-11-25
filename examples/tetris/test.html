@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>TetrisCore 测试</title>
+  <style>
+    body { font-family: monospace; background: #0d0d1a; color: #c8c8d4; padding: 24px; }
+    #summary { font-size: 20px; margin-bottom: 16px; }
+    .pass { color: #4caf50; }
+    .fail { color: #ff5252; }
+  </style>
+</head>
+<body>
+  <div id="summary">运行中…</div>
+  <ol id="results"></ol>
+  <script src="js/core.js"></script>
+  <script src="js/core.tests.js"></script>
+  <script>
+    (function () {
+      const results = TetrisCoreTests.run(TetrisCore);
+      const list = document.getElementById('results');
+      results.forEach(function (r) {
+        const li = document.createElement('li');
+        li.className = r.ok ? 'pass' : 'fail';
+        li.textContent = (r.ok ? '✓ ' : '✗ ') + r.name + (r.ok ? '' : ' — ' + r.error);
+        list.appendChild(li);
+      });
+      const passed = results.filter(function (r) { return r.ok; }).length;
+      const allOk = passed === results.length;
+      const summary = document.getElementById('summary');
+      summary.className = allOk ? 'pass' : 'fail';
+      summary.textContent = (allOk ? '全部通过 ' : '有失败 ') + passed + '/' + results.length;
+      document.title = (allOk ? 'PASS ' : 'FAIL ') + passed + '/' + results.length;
+    })();
+  </script>
+</body>
+</html>

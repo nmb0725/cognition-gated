@@ -24,3 +24,5 @@ venv/
 # Rust / Cargo (if applicable)
 target/
 Cargo.lock
+# Tool artifacts
+.screenshots/
