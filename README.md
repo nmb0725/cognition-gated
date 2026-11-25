@@ -1,6 +1,36 @@
 # Cognition-Gated Development
 
-A human-in-the-loop AI development workflow built around **developer sovereignty**: AI writes most of the code, but you decide the architecture, the interfaces, and what "done" means, and you can still read the result.
+[中文](./README.zh-CN.md) · v1.0 · MIT
+
+**Let AI write the code. Keep the project yours.**
+
+A drop-in set of guardrails for AI coding agents. A spec defines *what to build, what the shared names are, and what "done" means*; scripts check that the code follows it; and you decide at only two points: **freezing the spec** and **reviewing the result**.
+
+## Why
+
+After a few rounds of agent-written code, it's common that:
+- the code runs, but you can no longer explain its structure;
+- files name things independently, so HTML and CSS (or frontend and backend) disagree;
+- the docs say one thing and the code does another;
+- rules like "don't touch the directory layout" or "no new dependencies" live only in a prompt, and the model may ignore them.
+
+This project doesn't rely on the model's good behavior. It turns the key constraints into **a visible spec** and **checks you can run**.
+
+## What's inside
+
+| Piece | Role |
+| :--- | :--- |
+| `AGENTS.md` | Rules for the agent: triage into S/M/L, red lines that force a stop, a green zone for direct fixes, risk-sized testing. Read automatically by most coding agents |
+| `@cognition-architect` | Writes the spec `COGNITION.md`: intent, an **interface contract table**, executable acceptance criteria |
+| `@dispatcher` | Splits large work across parallel subagents, each owning its files exclusively; also runs the debug fast-track and syncs code changes back into the spec |
+| `check_contract.py` | Verifies the code against the contract table, and flags unregistered shared names, dangling ID/class references, and broken file references |
+| `check_redlines.py` | Checks git changes for new dependencies, structure changes, and credential files |
+
+Both skills use the open SKILL.md format and aren't tied to Trae, Claude Code, or any model. Model choice lives in `AGENTS.md` as "reasoning tier / coding tier".
+
+## Flow
+
+Triage first; process weight follows the size of the change:
 
 ```
 [Request] → triage S / M / L
@@ -10,52 +40,40 @@ A human-in-the-loop AI development workflow built around **developer sovereignty
             ─→ parallel subagents (file ownership + shared contract) ─→ [acceptance + diff review]
 ```
 
-## Philosophy
+Execution, retries, and self-healing are left to the agent. Crossing a red line (structure changes, public interface changes, new dependencies, data or production risk) makes the agent stop and hand back to you.
 
-The faster AI edits code, the easier it is to lose understanding of your own project. This workflow puts human gates only where direction is decided:
+## In practice: the tetris example
 
-1. **Spec freeze**: you approve intent, interface contracts, and acceptance criteria.
-2. **Result review**: you review acceptance results and the diff, instead of watching every line being written.
+[examples/tetris/](./examples/tetris/) walks through the M-tier flow end to end:
 
-Execution, retries, and self-healing are left to the agent. Red lines (structure changes, interface changes, new dependencies, data or production risk) force the agent to stop.
+- the spec has 38 interface contracts and 6 acceptance criteria;
+- the contract check passes 84 verifications, all 12 automated tests pass, plus 2 manual checks;
+- it found and fixed 2 bugs from the old version (all keys were intercepted so F5 didn't work; a new piece dropped a row right after a hard drop);
+- the old version's "HTML and CSS used different class names" failure is now caught directly by `check_contract.py`.
 
-## Relationship to Spec-Driven Development
-
-This project belongs to the same family as AWS Kiro and GitHub spec-kit. What it adds:
-
-- **Executable interface contract + file ownership**: all shared names (DOM IDs, CSS classes, exports, paths) go into a contract table that `check_contract.py` verifies against the code, including a reverse check for unregistered shared names; parallel tasks own their files exclusively.
-- **Complexity triage**: no ceremony for S-tier work; the full flow only for L-tier.
-- **Red lines / green zone**: green-zone fixes can be batched during debugging; red lines halt the agent.
-- **Reverse sync**: `@dispatcher sync` writes real code changes back into the spec so docs and code don't drift.
+The original v0 record is kept in `examples/tetris/v0-record/` for comparison.
 
 ## Quick start
 
 ```bash
-# Install rules and skills into your project (use --tool trae for Trae)
+# Install rules, skills, and check scripts into your project (--tool trae for Trae, --tool claude for Claude Code)
 python scripts/install_skills.py <your-project> --tool agents
 ```
 
-Edit §7 (project commands) and §8 (capability-tier mapping) in the target project's `AGENTS.md`, then:
+Edit §7 (project commands) and §8 (capability tiers) in the target project's `AGENTS.md`, then:
 
 ```
 @cognition-architect I want to build ...
 ```
 
-| File | Role |
-| :--- | :--- |
-| `AGENTS.md` | Triage, red lines, green zone, acceptance, command policy. Read automatically by most coding agents |
-| `.agents/skills/cognition-architect/` | Turns requests into a reviewable, testable spec `COGNITION.md` |
-| `.agents/skills/dispatcher/` | L-tier decomposition and dispatch, debug fast-track, sync |
-| `scripts/check_contract.py` | Verifies code against the contract table in COGNITION.md and flags unregistered shared names |
-| `scripts/check_redlines.py` | Checks git changes against red lines, independent of the model |
+## Relationship to Spec-Driven Development
 
-Skills use the open SKILL.md format and are not tied to any tool or model. Model choice lives in `AGENTS.md` §8 as capability tiers.
+Same idea as AWS Kiro and GitHub spec-kit: spec first. If you already use them, you can borrow just the pieces added here: **executable interface contracts**, **file-ownership parallel splits**, **red-line checks**, and **reverse sync** from code to spec.
 
 ## More
 
 - [docs/HOW_TO_START.md](./docs/HOW_TO_START.md): full guide and FAQ (Chinese)
 - [docs/ENFORCEMENT.md](./docs/ENFORCEMENT.md): making red lines actually enforced (Chinese)
-- [examples/tetris/](./examples/tetris/): a full v1 M-tier walkthrough (with the original v0 record for comparison)
 - [CHANGELOG.md](./CHANGELOG.md)
 
 Docs and skills are written in Chinese (the author's working language); the workflow itself is language-agnostic.
